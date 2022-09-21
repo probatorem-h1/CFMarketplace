@@ -205,7 +205,6 @@ contract Marketplace {
 
     function Buy(uint256 _listingID) public payable {
         (uint256 index, bool r) = InArray(_listingID, activeListings);
-        delete index;
         require(r, "Invalid Listing");
         Listing storage listing = listings[_listingID];
         require(
