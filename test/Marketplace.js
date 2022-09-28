@@ -45,7 +45,7 @@ describe('Marketplace', function () {
         it("Should only allow admin", async function () {
             const { marketplace, nft, owner, account2 } = await loadFixture(deployMarketplaceFixture);
             const type = 1;
-            const price = ethers.utils.parseEther("1.0");
+            const price = 10;
             const image = "image";
             const name = "name";
             const totalEntrants = 10;
@@ -55,7 +55,7 @@ describe('Marketplace', function () {
         it("Should only allow types 0, 1, or 2", async function () {
             const { marketplace, nft, owner, account2 } = await loadFixture(deployMarketplaceFixture);
             const type = 3;
-            const price = ethers.utils.parseEther("1.0");
+            const price = 10;
             const image = "image";
             const name = "name";
             const totalEntrants = 10;
@@ -66,7 +66,7 @@ describe('Marketplace', function () {
         it("Should add index to activeListings", async function () {
             const { marketplace, nft, owner, account2 } = await loadFixture(deployMarketplaceFixture);
             const type = 1;
-            const price = ethers.utils.parseEther("1.0");
+            const price = 10;
             const image = "image";
             const name = "name";
             const totalEntrants = 10;
@@ -78,7 +78,7 @@ describe('Marketplace', function () {
         it("Should increment listingIndex", async function () {
             const { marketplace, nft, owner, account2 } = await loadFixture(deployMarketplaceFixture);
             const type = 1;
-            const price = ethers.utils.parseEther("1.0");
+            const price = 10;
             const image = "image";
             const name = "name";
             const totalEntrants = 10;
@@ -92,7 +92,7 @@ describe('Marketplace', function () {
         it("Should only allow admin", async function () {
             const { marketplace, nft, owner, account2 } = await loadFixture(deployMarketplaceFixture);
             const type = 1;
-            const price = ethers.utils.parseEther("1.0");
+            const price = 10;
             const image = "image";
             const name = "name";
             const totalEntrants = 10;
@@ -104,7 +104,7 @@ describe('Marketplace', function () {
         it("Should only allow active listings", async function () {
             const { marketplace, nft, owner, account2 } = await loadFixture(deployMarketplaceFixture);
             const type = 1;
-            const price = ethers.utils.parseEther("1.0");
+            const price = 10;
             const image = "image";
             const name = "name";
             const totalEntrants = 10;
@@ -116,7 +116,7 @@ describe('Marketplace', function () {
         it("Should remove listing from active", async function () {
             const { marketplace, nft, owner, account2 } = await loadFixture(deployMarketplaceFixture);
             const type = 1;
-            const price = ethers.utils.parseEther("1.0");
+            const price = 10;
             const image = "image";
             const name = "name";
             const totalEntrants = 10;
@@ -135,7 +135,7 @@ describe('Marketplace', function () {
         it("Should add listing to closed", async function () {
             const { marketplace, nft, owner, account2 } = await loadFixture(deployMarketplaceFixture);
             const type = 1;
-            const price = ethers.utils.parseEther("1.0");
+            const price = 10;
             const image = "image";
             const name = "name";
             const totalEntrants = 10;
@@ -150,7 +150,7 @@ describe('Marketplace', function () {
         it("Shoud only allow owner", async function () {
             const { marketplace, nft, owner, account2 } = await loadFixture(deployMarketplaceFixture);
             const type = 1;
-            const price = ethers.utils.parseEther("1.0");
+            const price = 10;
             const image = "image";
             const name = "name";
             const totalEntrants = 10;
@@ -167,7 +167,7 @@ describe('Marketplace', function () {
         it("Should remove listing from activeListings if active", async function () {
             const { marketplace, nft, owner, account2 } = await loadFixture(deployMarketplaceFixture);
             const type = 1;
-            const price = ethers.utils.parseEther("1.0");
+            const price = 10;
             const image = "image";
             const name = "name";
             const totalEntrants = 10;
@@ -186,7 +186,7 @@ describe('Marketplace', function () {
         it("Should remove listing from closedListings if closed", async function () {
             const { marketplace, nft, owner, account2 } = await loadFixture(deployMarketplaceFixture);
             const type = 1;
-            const price = ethers.utils.parseEther("1.0");
+            const price = 10;
             const image = "image";
             const name = "name";
             const totalEntrants = 10;
@@ -202,9 +202,81 @@ describe('Marketplace', function () {
 
             expect(err).to.equal('call revert exception [ See: https://links.ethers.org/v5-errors-CALL_EXCEPTION ] (method="closedListings(uint256)", data="0x", errorArgs=null, errorName=null, errorSignature=null, reason=null, code=CALL_EXCEPTION, version=abi/5.7.0)');
         });
+    });
 
-        describe("Buy", function () {
+    describe("Buy", function () {
+        it("Should only allow active listings", async function () {
+            const { marketplace, nft, owner, account2 } = await loadFixture(deployMarketplaceFixture);
+            const type = 1;
+            const price = 10;
+            var image = "image";
+            var name = "name";
+            var totalEntrants = 10;
+            const index = await marketplace.listingIndex();
+            await marketplace.List(type, price, image, name, totalEntrants);
+            await expect(marketplace.connect(account2).Buy(index + 1)).to.be.revertedWith("Invalid Listing");
+        });
 
+        it("Should revert if token count is below listing price", async function () {
+            const { marketplace, nft, owner, account2 } = await loadFixture(deployMarketplaceFixture);
+            const type = 1;
+            const price = 10;
+            var image = "image";
+            var name = "name";
+            var totalEntrants = 10;
+            const index = await marketplace.listingIndex();
+            await marketplace.List(type, price, image, name, totalEntrants);
+            await nft.connect(account2).Claim(9);
+            await nft.connect(account2).approve(marketplace.address, 9);
+            await expect(marketplace.connect(account2).Buy(index)).to.be.revertedWith("Approve Failed");
+        });
+
+        it("Should transfer token", async function () {
+            const { marketplace, nft, owner, account2 } = await loadFixture(deployMarketplaceFixture);
+            const type = 1;
+            const price = 10;
+            var image = "image";
+            var name = "name";
+            var totalEntrants = 10;
+            const index = await marketplace.listingIndex();
+            await marketplace.List(type, price, image, name, totalEntrants);
+            await nft.connect(account2).Claim(10);
+            await nft.connect(account2).approve(marketplace.address, 10);
+            expect(
+                await marketplace.connect(account2).Buy(index)
+            )
+            .to.emit(nft, "Transfer")
+            .withArgs(ethers.constants.AddressZero, account2.address, index);
+        });
+
+        it("Should revert if token already purchased", async function () {
+            const { marketplace, nft, owner, account2 } = await loadFixture(deployMarketplaceFixture);
+            const type = 1;
+            const price = 10;
+            var image = "image";
+            var name = "name";
+            var totalEntrants = 10;
+            const index = await marketplace.listingIndex();
+            await marketplace.List(type, price, image, name, totalEntrants);
+            await nft.connect(account2).Claim(10);
+            await nft.connect(account2).approve(marketplace.address, 10);
+            await marketplace.connect(account2).Buy(index);
+            await expect(marketplace.connect(account2).Buy(index)).to.be.reverted;
+        });
+
+        it("Should close listing if entrants at max", async function () {
+            const { marketplace, nft, owner, account2 } = await loadFixture(deployMarketplaceFixture);
+            const type = 1;
+            const price = 10;
+            var image = "image";
+            var name = "name";
+            var totalEntrants = 1;
+            const index = await marketplace.listingIndex();
+            await marketplace.List(type, price, image, name, totalEntrants);
+            await nft.connect(account2).Claim(10);
+            await nft.connect(account2).approve(marketplace.address, 10);
+            await marketplace.connect(account2).Buy(index);
+            expect(await marketplace.closedListings(0)).to.equal(index)
         });
     });
 
@@ -212,7 +284,7 @@ describe('Marketplace', function () {
         it("Should only allow owner", async function () {
             const { marketplace, nft, owner, account2 } = await loadFixture(deployMarketplaceFixture);
             const type = 1;
-            const price = ethers.utils.parseEther("1.0");
+            const price = 10;
             var image = "image";
             var name = "name";
             var totalEntrants = 10;
@@ -220,5 +292,52 @@ describe('Marketplace', function () {
             await marketplace.List(type, price, image, name, totalEntrants);
             await expect(marketplace.connect(account2).Edit(index, image, name, totalEntrants)).to.be.revertedWith("Invalid Permissions");
         });
+
+        it("Should only allow totalEntrants to be greater than current entrants", async function () {
+            const { marketplace, nft, owner, account2 } = await loadFixture(deployMarketplaceFixture);
+            const type = 1;
+            const price = 10;
+            var image = "image";
+            var name = "name";
+            var totalEntrants = 10;
+            const index = await marketplace.listingIndex();
+            await marketplace.List(type, price, image, name, totalEntrants);
+            totalEntrants = 0;
+            await expect(marketplace.Edit(index, image, name, totalEntrants)).to.be.reverted;
+        });
+    });
+
+    describe("changeToken", function () {
+        it("Should only allow owner", async function () {
+            const { marketplace, nft, owner, account2 } = await loadFixture(deployMarketplaceFixture);
+            await expect(marketplace.connect(account2).changeToken(nft.address)).to.be.revertedWith("Invalid Permissions");
+        });
+    });
+
+    describe("AddRole", function () {
+        it("Should only allow owner", async function () {
+            const { marketplace, nft, owner, account2 } = await loadFixture(deployMarketplaceFixture);
+            await expect(marketplace.connect(account2).AddRole(account2.address)).to.be.revertedWith("Invalid Permissions");
+        });
+
+        it("Should add role", async function () {
+            const { marketplace, nft, owner, account2 } = await loadFixture(deployMarketplaceFixture);
+            await marketplace.AddRole(account2.address)
+            await expect(marketplace.connect(account2).AddRole(account2.address));
+        });
+    });
+
+    describe("RemoveRole", function () {
+        it("Should only allow owner", async function () {
+            const { marketplace, nft, owner, account2 } = await loadFixture(deployMarketplaceFixture);
+            await expect(marketplace.connect(account2).RemoveRole(owner.address)).to.be.revertedWith("Invalid Permissions");
+        });
+
+        it("Should remove role", async function () {
+            const { marketplace, nft, owner, account2 } = await loadFixture(deployMarketplaceFixture);
+            await marketplace.AddRole(account2.address);
+            await marketplace.RemoveRole(account2.address);
+            await expect(marketplace.connect(account2).RemoveRole(owner.address)).to.be.revertedWith("Invalid Permissions");
+        })
     });
 });
