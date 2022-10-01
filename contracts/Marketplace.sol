@@ -144,18 +144,32 @@ contract Marketplace {
         uint256 listingType;
         uint256 listingID;
         string imageURL;
+        string websiteURL;
+        string discordURL;
+        string twitterURL;
+        string marketplaceURL;
         string name;
+        string description;
         uint256 price;
-        uint256 totalEntrants;
+        uint256 winners;
+        uint256 totalEntries;
+        string endDate;
         address[] addresses;
     }
 
     function List(
         uint256 _type,
-        uint256 _price,
         string calldata _image,
+        string calldata _website,
+        string calldata _discord,
+        string calldata _twitter,
+        string calldata _marketplace,
         string calldata _name,
-        uint256 _totalEntrants
+        string calldata _description,
+        uint256 _price,
+        uint256 _winners,
+        uint256 _totalEntries,
+        string calldata _endDate
     ) public {
         require(_admin.has(msg.sender), "Invalid Permissions");
         require(_type < 3, "Invalid Type");
@@ -163,9 +177,16 @@ contract Marketplace {
             _type,
             listingIndex,
             _image,
+            _website,
+            _discord,
+            _twitter,
+            _marketplace,
             _name,
+            _description,
             _price,
-            _totalEntrants,
+            _winners,
+            _totalEntries,
+            _endDate,
             new address[](0)
         );
         activeListings.push(listingIndex);
@@ -226,7 +247,7 @@ contract Marketplace {
         );
         require(success, "Transfer Failed");
 
-        if (listing.addresses.length + 1 == listing.totalEntrants) {
+        if (listing.addresses.length + 1 == listing.totalEntries) {
             activeListings[index] = activeListings[activeListings.length - 1];
             activeListings.pop();
             closedListings.push(_listingID);
@@ -245,16 +266,22 @@ contract Marketplace {
         require(_totalEntrants > listing.addresses.length);
         listing.imageURL = _image;
         listing.name = _name;
-        listing.totalEntrants = _totalEntrants;
+        listing.totalEntries = _totalEntrants;
     }
 
-    function getActiveListings() public view returns(uint256[] memory){
+    function getActiveListings() public view returns (uint256[] memory) {
         return activeListings;
     }
-    function getClosedListings() public view returns(uint256[] memory){
+
+    function getClosedListings() public view returns (uint256[] memory) {
         return closedListings;
     }
-        function getEntrants(uint256 _listingID) public view returns(address[] memory){
+
+    function getEntrants(uint256 _listingID)
+        public
+        view
+        returns (address[] memory)
+    {
         return listings[_listingID].addresses;
     }
 
