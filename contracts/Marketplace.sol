@@ -258,14 +258,28 @@ contract Marketplace {
     function Edit(
         uint256 _listingID,
         string calldata _image,
+        string calldata _website,
+        string calldata _discord,
+        string calldata _twitter,
+        string calldata _marketplace,
         string calldata _name,
+        string calldata _description,
+        uint256 _winners,
+        string calldata _endDate,
         uint256 _totalEntrants
     ) public {
         require(_admin.has(msg.sender), "Invalid Permissions");
         Listing storage listing = listings[_listingID];
         require(_totalEntrants > listing.addresses.length);
         listing.imageURL = _image;
+        listing.websiteURL = _website;
+        listing.discordURL = _discord;
+        listing.twitterURL = _twitter;
+        listing.marketplaceURL = _marketplace;
         listing.name = _name;
+        listing.description = _description;
+        listing.winners = _winners;
+        listing.endDate = _endDate;
         listing.totalEntries = _totalEntrants;
     }
 
