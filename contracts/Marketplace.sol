@@ -128,9 +128,9 @@ interface IERC20 {
 
 contract Marketplace {
     IERC20 public FYTE;
-    uint256[] public activeListings;
-    uint256[] public closedListings;
-    uint256 public listingIndex = 1;
+    uint256[] internal activeListings;
+    uint256[] internal closedListings;
+    uint256 internal listingIndex = 1;
     mapping(uint256 => Listing) public listings;
     using Roles for Roles.Role;
     Roles.Role private _admin;
@@ -248,8 +248,18 @@ contract Marketplace {
         listing.totalEntrants = _totalEntrants;
     }
 
+    function getActiveListings() public view returns(uint256[] memory){
+        return activeListings;
+    }
+    function getClosedListings() public view returns(uint256[] memory){
+        return closedListings;
+    }
+        function getEntrants(uint256 _listingID) public view returns(address[] memory){
+        return listings[_listingID].addresses;
+    }
+
     function InArray(uint256 _listingID, uint256[] memory arr)
-        public
+        internal
         pure
         returns (uint256, bool)
     {
