@@ -207,6 +207,14 @@ contract Marketplace {
         (uint256 index, bool r) = InArray(_listingID, activeListings);
         require(r, "Invalid Listing");
         Listing storage listing = listings[_listingID];
+
+        uint256 t = listings[_listingID].listingType;
+        if (t == 0) {
+            for (uint256 i; i < listing.addresses.length; i++) {
+                require(listing.addresses[i] != msg.sender);
+            }
+        }
+
         require(
             FYTE.allowance(msg.sender, address(this)) >= listing.price,
             "Approve Failed"
@@ -217,12 +225,7 @@ contract Marketplace {
             listing.price
         );
         require(success, "Transfer Failed");
-        uint256 t = listings[_listingID].listingType;
-        if (t == 0) {
-            for (uint256 i; i < listing.addresses.length; i++) {
-                require(listing.addresses[i] != msg.sender);
-            }
-        }
+
         if (listing.addresses.length + 1 == listing.totalEntrants) {
             activeListings[index] = activeListings[activeListings.length - 1];
             activeListings.pop();
@@ -239,7 +242,7 @@ contract Marketplace {
     ) public {
         require(_admin.has(msg.sender), "Invalid Permissions");
         Listing storage listing = listings[_listingID];
-        require(_totalEntrants >= listing.addresses.length);
+        require(_totalEntrants > listing.addresses.length);
         listing.imageURL = _image;
         listing.name = _name;
         listing.totalEntrants = _totalEntrants;
