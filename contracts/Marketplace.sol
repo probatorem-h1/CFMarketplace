@@ -135,6 +135,11 @@ contract Marketplace {
     using Roles for Roles.Role;
     Roles.Role private _admin;
 
+    event Listed(uint256 _listingID);
+    event Purchase(address _sender, uint256 _amount);
+    event Activated(uint256 _listingID);
+    event Closed(uint256 _listingID);
+
     constructor(address _token) {
         FYTE = IERC20(_token);
         _admin.add(msg.sender);
@@ -191,6 +196,7 @@ contract Marketplace {
         );
         activeListings.push(listingIndex);
         listingIndex += 1;
+        emit Listed(listingIndex);
     }
 
     function Close(uint256 _listingID) public {
@@ -200,6 +206,7 @@ contract Marketplace {
         activeListings[i] = activeListings[activeListings.length - 1];
         activeListings.pop();
         closedListings.push(_listingID);
+        emit Closed(_listingID);
     }
 
     function Activate(uint256 _listingID) public {
@@ -209,6 +216,7 @@ contract Marketplace {
         closedListings[i] = closedListings[closedListings.length - 1];
         closedListings.pop();
         activeListings.push(_listingID);
+        emit Activated(_listingID);
     }
 
     function Delete(uint256 _listingID) public {
@@ -222,9 +230,11 @@ contract Marketplace {
             closedListings[i] = closedListings[closedListings.length - 1];
             closedListings.pop();
         }
+        delete listings[_listingID];
     }
 
-    function Buy(uint256 _listingID) public payable {
+    function Buy(uint256 _listingID, uint256 _amount) public payable {
+        require(_amount > 0, "Invalid Amount");
         (uint256 index, bool r) = InArray(_listingID, activeListings);
         require(r, "Invalid Listing");
         Listing storage listing = listings[_listingID];
@@ -246,13 +256,19 @@ contract Marketplace {
             listing.price
         );
         require(success, "Transfer Failed");
-
-        if (listing.addresses.length + 1 == listing.totalEntries) {
-            activeListings[index] = activeListings[activeListings.length - 1];
-            activeListings.pop();
-            closedListings.push(_listingID);
+        for (uint256 i; i < _amount; i++) {
+            if (listing.addresses.length + 1 == listing.totalEntries) {
+                activeListings[index] = activeListings[
+                    activeListings.length - 1
+                ];
+                activeListings.pop();
+                closedListings.push(_listingID);
+                listing.addresses.push(msg.sender);
+                break;
+            }
+            listing.addresses.push(msg.sender);
         }
-        listing.addresses.push(msg.sender);
+        emit Purchase(msg.sender, _amount);
     }
 
     function Edit(
@@ -325,5 +341,11 @@ contract Marketplace {
     function RemoveRole(address _address) public {
         require(_admin.has(msg.sender), "Invalid Permissions");
         _admin.remove(_address);
+    }
+
+    function withdrawToken(uint256 _amount) external {
+        require(_admin.has(msg.sender), "Invalid Permissions");
+        FYTE.approve(address(this), _amount);
+        FYTE.transferFrom(address(this), msg.sender, _amount);
     }
 }
