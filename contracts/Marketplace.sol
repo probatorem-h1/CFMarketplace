@@ -164,34 +164,25 @@ contract Marketplace {
 
     function List(
         uint256 _type,
-        string calldata _image,
-        string calldata _website,
-        string calldata _discord,
-        string calldata _twitter,
-        string calldata _marketplace,
-        string calldata _name,
-        string calldata _description,
-        uint256 _price,
-        uint256 _winners,
-        uint256 _totalEntries,
-        string calldata _endDate
+        string[] calldata strings,
+        uint256[] calldata ints
     ) public {
         require(_admin.has(msg.sender), "Invalid Permissions");
         require(_type < 3, "Invalid Type");
         listings[listingIndex] = Listing(
             _type,
             listingIndex,
-            _image,
-            _website,
-            _discord,
-            _twitter,
-            _marketplace,
-            _name,
-            _description,
-            _price,
-            _winners,
-            _totalEntries,
-            _endDate,
+            strings[0],
+            strings[1],
+            strings[2],
+            strings[3],
+            strings[4],
+            strings[5],
+            strings[6],
+            ints[0],
+            ints[1],
+            ints[2],
+            strings[7],
             new address[](0)
         );
         activeListings.push(listingIndex);
@@ -272,31 +263,22 @@ contract Marketplace {
     }
 
     function Edit(
-        uint256 _listingID,
-        string calldata _image,
-        string calldata _website,
-        string calldata _discord,
-        string calldata _twitter,
-        string calldata _marketplace,
-        string calldata _name,
-        string calldata _description,
-        uint256 _winners,
-        string calldata _endDate,
-        uint256 _totalEntrants
+        string[] calldata strings,
+        uint256[] calldata ints
     ) public {
         require(_admin.has(msg.sender), "Invalid Permissions");
-        Listing storage listing = listings[_listingID];
-        require(_totalEntrants > listing.addresses.length);
-        listing.imageURL = _image;
-        listing.websiteURL = _website;
-        listing.discordURL = _discord;
-        listing.twitterURL = _twitter;
-        listing.marketplaceURL = _marketplace;
-        listing.name = _name;
-        listing.description = _description;
-        listing.winners = _winners;
-        listing.endDate = _endDate;
-        listing.totalEntries = _totalEntrants;
+        Listing storage listing = listings[ints[0]];
+        require(ints[2] > listing.addresses.length);
+        listing.imageURL = strings[0];
+        listing.websiteURL = strings[1];
+        listing.discordURL = strings[2];
+        listing.twitterURL = strings[3];
+        listing.marketplaceURL = strings[4];
+        listing.name = strings[5];
+        listing.description = strings[6];
+        listing.winners = ints[1];
+        listing.endDate = strings[7];
+        listing.totalEntries = ints[2];
     }
 
     function getActiveListings() public view returns (uint256[] memory) {
