@@ -7,4 +7,8 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract NFT is ERC20, Ownable {
     constructor() ERC20("NFT", "NFT") {}
+
+    function Claim(uint256 _amount) public {
+        _mint(msg.sender, _amount);
+    }
 }

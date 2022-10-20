@@ -187,7 +187,7 @@ contract Marketplace {
         );
         activeListings.push(listingIndex);
         listingIndex += 1;
-        emit Listed(listingIndex);
+        emit Listed(listingIndex - 1);
     }
 
     function Close(uint256 _listingID) public {
@@ -229,22 +229,30 @@ contract Marketplace {
         (uint256 index, bool r) = InArray(_listingID, activeListings);
         require(r, "Invalid Listing");
         Listing storage listing = listings[_listingID];
-
+        require(
+            _amount + listing.addresses.length <= listing.totalEntries,
+            "Too many purchased"
+        );
         uint256 t = listings[_listingID].listingType;
         if (t == 0) {
+            require(_amount == 1, "Amount must be 1");
             for (uint256 i; i < listing.addresses.length; i++) {
-                require(listing.addresses[i] != msg.sender);
+                require(
+                    listing.addresses[i] != msg.sender,
+                    "Already Purchased"
+                );
             }
         }
 
         require(
-            FYTE.allowance(msg.sender, address(this)) >= listing.price,
+            FYTE.allowance(msg.sender, address(this)) >=
+                _amount * listing.price,
             "Approve Failed"
         );
         bool success = FYTE.transferFrom(
             msg.sender,
             address(this),
-            listing.price
+            _amount * listing.price
         );
         require(success, "Transfer Failed");
         for (uint256 i; i < _amount; i++) {
@@ -263,12 +271,13 @@ contract Marketplace {
     }
 
     function Edit(
+        uint256 _index,
         string[] calldata strings,
         uint256[] calldata ints
     ) public {
         require(_admin.has(msg.sender), "Invalid Permissions");
-        Listing storage listing = listings[ints[0]];
-        require(ints[2] > listing.addresses.length);
+        Listing storage listing = listings[_index];
+        require(ints[2] > listing.addresses.length, "Invalid Total Entrants");
         listing.imageURL = strings[0];
         listing.websiteURL = strings[1];
         listing.discordURL = strings[2];
@@ -276,6 +285,7 @@ contract Marketplace {
         listing.marketplaceURL = strings[4];
         listing.name = strings[5];
         listing.description = strings[6];
+        listing.price = ints[0];
         listing.winners = ints[1];
         listing.endDate = strings[7];
         listing.totalEntries = ints[2];
@@ -327,6 +337,7 @@ contract Marketplace {
 
     function withdrawToken(uint256 _amount) external {
         require(_admin.has(msg.sender), "Invalid Permissions");
+        require(_amount <= FYTE.balanceOf(address(this)), "Invalid Amount");
         FYTE.approve(address(this), _amount);
         FYTE.transferFrom(address(this), msg.sender, _amount);
     }
