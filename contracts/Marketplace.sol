@@ -234,7 +234,7 @@ contract Marketplace {
             "Too many purchased"
         );
         uint256 t = listings[_listingID].listingType;
-        if (t == 0) {
+        if (t == 1) {
             require(_amount == 1, "Amount must be 1");
             for (uint256 i; i < listing.addresses.length; i++) {
                 require(
